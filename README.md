@@ -8,8 +8,7 @@ This repository contains a preliminary test application developed in Python for 
 - Institution: Instituto Tecnológico de Costa Rica (ITCR)
 - Duration: 15 days
 - Technology: Python
-- Scope: Develop a test application to simulate and validate basic functionalities of the event ticket purchasing system. This includes testing user
-- account management, event listings, and transaction processes.
+- Scope: Develop a test application to simulate and validate basic functionalities of the event ticket purchasing system. This includes testing user account management, event listings, and transaction processes.
 - Server: The server-side implementation, which will be developed in Rust, is part of a separate repository.
 
 ### Purpose:
