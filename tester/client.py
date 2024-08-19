@@ -1,15 +1,17 @@
+
 import socket
 import threading
 
 def receive_messages(sock):
     while True:
         try:
-            message = sock.recv(1024).decode('utf-8')
+            message = sock.recv(4096).decode('utf-8')  # Aumenta el buffer si es necesario
             if message:
                 print(message)
             else:
                 break
-        except:
+        except Exception as e:
+            print(f"Error receiving message: {e}")
             break
 
 def main():
@@ -19,9 +21,11 @@ def main():
     threading.Thread(target=receive_messages, args=(client_socket,)).start()
 
     while True:
-        message = input("Enter your message or press 1 to get pet names: ")
+        message = input("Enter your message, '1' for pet names, or '2' for stadium structure: ")
         if message == "1":
             client_socket.send("GET_PET_NAMES\n".encode('utf-8'))
+        elif message == "2":
+            client_socket.send("GET_STADIUM_STRUCTURE\n".encode('utf-8'))
         elif message:
             message += '\n'
             client_socket.send(message.encode('utf-8'))
