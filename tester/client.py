@@ -1,4 +1,3 @@
-
 import socket
 import threading
 
@@ -18,17 +17,18 @@ def main():
     client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     client_socket.connect(('127.0.0.1', 8080))
 
+    # Enviar la solicitud de estructura del estadio inmediatamente
+    client_socket.send("GET_STADIUM_STRUCTURE\n".encode('utf-8'))
+
+    # Iniciar el hilo para recibir mensajes
     threading.Thread(target=receive_messages, args=(client_socket,)).start()
 
+    # Esperar para recibir mensajes (no hacer nada en el hilo principal)
     while True:
-        message = input("Enter your message, '1' for pet names, or '2' for stadium structure: ")
-        if message == "1":
-            client_socket.send("GET_PET_NAMES\n".encode('utf-8'))
-        elif message == "2":
-            client_socket.send("GET_STADIUM_STRUCTURE\n".encode('utf-8'))
-        elif message:
-            message += '\n'
-            client_socket.send(message.encode('utf-8'))
+        pass  # Puedes reemplazar esto con cualquier lógica adicional si es necesario
 
 if __name__ == "__main__":
     main()
+
+
+
