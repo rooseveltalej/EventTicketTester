@@ -29,6 +29,7 @@ def main():
     # Iniciar el hilo para recibir mensajes
     threading.Thread(target=receive_messages, args=(client_socket,), daemon=True).start()
 
+    # Esperar para recibir mensajes (no hacer nada en el hilo principal)
     while True:
         print("\nOpciones:")
         print("1. Reservar Asiento")
