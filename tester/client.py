@@ -37,8 +37,8 @@ def main():
         choice = input("Seleccione una opción: ")
 
         if choice == '1':
-            categoria = input("Ingrese la categoría: ")
             zona = input("Ingrese la zona: ")
+            categoria = input("Ingrese la categoría: ")
             fila = input("Ingrese la fila: ")
             asiento = input("Ingrese el número de asiento: ")
             command = f'RESERVAR_ASIENTO "{categoria}" "{zona}" {fila} {asiento}'
@@ -46,8 +46,8 @@ def main():
             send_command(client_socket, "GET_STADIUM_STRUCTURE")
 
         elif choice == '2':
-            categoria = input("Ingrese la categoría: ")
             zona = input("Ingrese la zona: ")
+            categoria = input("Ingrese la categoría: ")
             fila = input("Ingrese la fila: ")
             asiento = input("Ingrese el número de asiento: ")
             command = f'COMPRAR_ASIENTO "{categoria}" "{zona}" {fila} {asiento}'
