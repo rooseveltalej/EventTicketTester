@@ -43,6 +43,7 @@ def main():
             asiento = input("Ingrese el número de asiento: ")
             command = f'RESERVAR_ASIENTO "{categoria}" "{zona}" {fila} {asiento}'
             send_command(client_socket, command)
+            send_command(client_socket, "GET_STADIUM_STRUCTURE")
 
         elif choice == '2':
             categoria = input("Ingrese la categoría: ")
@@ -51,6 +52,7 @@ def main():
             asiento = input("Ingrese el número de asiento: ")
             command = f'COMPRAR_ASIENTO "{categoria}" "{zona}" {fila} {asiento}'
             send_command(client_socket, command)
+            send_command(client_socket, "GET_STADIUM_STRUCTURE")
 
         elif choice == '3':
             print("Saliendo...")
