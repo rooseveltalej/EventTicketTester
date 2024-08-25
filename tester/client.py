@@ -1,5 +1,6 @@
 import socket
 import threading
+import time
 
 # Lista para almacenar los asientos reservados temporalmente
 reservas = []
@@ -22,6 +23,24 @@ def receive_messages(sock):
             print(f"Error receiving message: {e}")
             break
 
+def reservar_asientos_automaticamente(sock, cantidad):
+    global reservas
+    for i in range(cantidad):
+        zona = "A"  # Puedes cambiar esto según tus necesidades
+        categoria = "VIP"  # Puedes cambiar esto según tus necesidades
+        fila = str(i + 1)  # Asignar filas secuencialmente
+        asiento = str(i + 1)  # Asignar asientos secuencialmente
+        asiento_reserva = {"categoria": categoria, "zona": zona, "fila": fila, "asiento": asiento}
+        reservas.append(asiento_reserva)
+
+        # Enviar comando de reserva al servidor
+        command = f'RESERVAR_ASIENTO "{categoria}" "{zona}" {fila} {asiento}'
+        send_command(sock, command)
+        time.sleep(1)  # Esperar un segundo entre reservas para evitar sobrecargar el servidor
+
+    # Solicitar la estructura del estadio después de reservar
+    send_command(sock, "GET_STADIUM_STRUCTURE")
+
 def main():
     global reservas
     client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -37,7 +56,8 @@ def main():
         print("\nOpciones:")
         print("1. Reservar Asiento")
         print("2. Comprar Asiento(s) Reservado(s)")
-        print("3. Salir")
+        print("3. Reservar Asientos Automáticamente")
+        print("4. Salir")
         choice = input("Seleccione una opción: ")
 
         if choice == '1':
@@ -81,6 +101,18 @@ def main():
                 print("No hay asientos reservados para comprar.")
 
         elif choice == '3':
+            try:
+                cantidad = int(input("Ingrese la cantidad de asientos a reservar automáticamente (máximo 3): "))
+                if cantidad < 1 or cantidad > 3:
+                    print("Error: Solo se pueden reservar entre 1 y 3 asientos.")
+                    continue
+
+                reservar_asientos_automaticamente(client_socket, cantidad)
+            
+            except ValueError:
+                print("Error: La cantidad de asientos debe ser un número entero.")
+
+        elif choice == '4':
             print("Saliendo...")
             client_socket.close()
             break
