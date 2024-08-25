@@ -1,6 +1,9 @@
 import socket
 import threading
 
+# Lista para almacenar los asientos reservados temporalmente
+reservas = []
+
 def send_command(sock, command):
     try:
         sock.sendall(f"{command}\n".encode('utf-8'))
@@ -20,6 +23,7 @@ def receive_messages(sock):
             break
 
 def main():
+    global reservas
     client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     client_socket.connect(('127.0.0.1', 8080))
 
@@ -32,27 +36,49 @@ def main():
     while True:
         print("\nOpciones:")
         print("1. Reservar Asiento")
-        print("2. Comprar Asiento")
+        print("2. Comprar Asiento(s) Reservado(s)")
         print("3. Salir")
         choice = input("Seleccione una opción: ")
 
         if choice == '1':
-            zona = input("Ingrese la zona: ")
-            categoria = input("Ingrese la categoría: ")
-            fila = input("Ingrese la fila: ")
-            asiento = input("Ingrese el número de asiento: ")
-            command = f'RESERVAR_ASIENTO "{categoria}" "{zona}" {fila} {asiento}'
-            send_command(client_socket, command)
-            send_command(client_socket, "GET_STADIUM_STRUCTURE")
+            try:
+                cantidad = int(input("Ingrese la cantidad de asientos a reservar (máximo 3): "))
+                if cantidad < 1 or cantidad > 3:
+                    print("Error: Solo se pueden reservar entre 1 y 3 asientos.")
+                    continue
+
+                for i in range(cantidad):
+                    zona = input(f"Ingrese la zona para el asiento {i+1}: ")
+                    categoria = input(f"Ingrese la categoría para el asiento {i+1}: ")
+                    fila = input(f"Ingrese la fila para el asiento {i+1}: ")
+                    asiento = input(f"Ingrese el número de asiento para el asiento {i+1}: ")
+                    asiento_reserva = {"categoria": categoria, "zona": zona, "fila": fila, "asiento": asiento}
+                    reservas.append(asiento_reserva)
+
+                    # Enviar comando de reserva al servidor
+                    command = f'RESERVAR_ASIENTO "{categoria}" "{zona}" {fila} {asiento}'
+                    send_command(client_socket, command)
+
+                # Solicitar la estructura del estadio después de reservar
+                send_command(client_socket, "GET_STADIUM_STRUCTURE")
+            
+            except ValueError:
+                print("Error: La cantidad de asientos debe ser un número entero.")
 
         elif choice == '2':
-            zona = input("Ingrese la zona: ")
-            categoria = input("Ingrese la categoría: ")
-            fila = input("Ingrese la fila: ")
-            asiento = input("Ingrese el número de asiento: ")
-            command = f'COMPRAR_ASIENTO "{categoria}" "{zona}" {fila} {asiento}'
-            send_command(client_socket, command)
-            send_command(client_socket, "GET_STADIUM_STRUCTURE")
+            if reservas:
+                for asiento in reservas:
+                    command = f'COMPRAR_ASIENTO "{asiento["categoria"]}" "{asiento["zona"]}" {asiento["fila"]} {asiento["asiento"]}'
+                    send_command(client_socket, command)
+                
+                # Limpiar la lista de reservas después de la compra
+                reservas.clear()
+
+                # Solicitar la estructura del estadio después de la compra
+                send_command(client_socket, "GET_STADIUM_STRUCTURE")
+                print("Compra realizada con éxito.")
+            else:
+                print("No hay asientos reservados para comprar.")
 
         elif choice == '3':
             print("Saliendo...")
