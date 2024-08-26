@@ -29,40 +29,44 @@ class StadiumClient:
                 print(f"Error receiving message: {e}")
                 break
 
-    def reservar_asientos_automaticamente(self, cantidad):
-        categorias = ["VIP", "Regular", "Sol", "Platea"]
-        reservado = False
+    def reservar_asientos_automaticamente(self, cantidad, zonas, categorias, zona_actual=0, categoria_actual=0):
+        if zona_actual >= len(zonas):
+            print("No hay más zonas disponibles para revisar.")
+            return
 
-        for i in range(cantidad):
-            for categoria in categorias:
-                if reservado:
-                    break
-                for fila in range(1, 4):  # Suponiendo un máximo de 7 filas
-                    if reservado:
-                        break
-                    for asiento in range(1, 6):  # Suponiendo un máximo de 5 asientos por fila
-                        # Verificar disponibilidad del asiento antes de reservar
-                        command_check = f'CHECK_ASIENTO "{categoria}" "A" {fila} {asiento}'
-                        self.send_command(command_check)
-                        time.sleep(0.5)  # Esperar respuesta del servidor
+        if categoria_actual >= len(categorias):
+            # Pasar a la siguiente zona si se han revisado todas las categorías en la zona actual
+            self.reservar_asientos_automaticamente(cantidad, zonas, categorias, zona_actual + 1, 0)
+            return
 
-                        if self.asiento_disponible:
-                            asiento_reserva = {"categoria": categoria, "zona": "A", "fila": str(fila), "asiento": str(asiento)}
-                            self.reservas.append(asiento_reserva)
-                            command_reserve = f'RESERVAR_ASIENTO "{categoria}" "A" {fila} {asiento}'
-                            self.send_command(command_reserve)
-                            time.sleep(1)  # Esperar un segundo entre reservas para evitar sobrecargar el servidor
-                            reservado = True
-                            break
+        for fila in range(1, 4):  # Suponiendo un máximo de 3 filas
+            for asiento in range(1, 6):  # Suponiendo un máximo de 5 asientos por fila
+                # Verificar disponibilidad del asiento antes de reservar
+                command_check = f'CHECK_ASIENTO "{categorias[categoria_actual]}" "{zonas[zona_actual]}" {fila} {asiento}'
+                self.send_command(command_check)
+                time.sleep(0.5)  # Esperar respuesta del servidor
 
-            if not reservado:
-                print("No hay asientos disponibles en ninguna categoría.")
-                return
-            else:
-                reservado = False  # Resetear para la siguiente iteración
+                if self.asiento_disponible:
+                    asiento_reserva = {
+                        "categoria": categorias[categoria_actual], 
+                        "zona": zonas[zona_actual], 
+                        "fila": str(fila), 
+                        "asiento": str(asiento)
+                    }
+                    self.reservas.append(asiento_reserva)
+                    command_reserve = f'RESERVAR_ASIENTO "{categorias[categoria_actual]}" "{zonas[zona_actual]}" {fila} {asiento}'
+                    self.send_command(command_reserve)
+                    time.sleep(1)  # Esperar un segundo entre reservas para evitar sobrecargar el servidor
 
-        # Solicitar la estructura del estadio después de reservar
-        self.send_command("GET_STADIUM_STRUCTURE")
+                    cantidad -= 1
+                    if cantidad == 0:
+                        # Si ya se han reservado todos los asientos requeridos, terminar la función
+                        self.send_command("GET_STADIUM_STRUCTURE")
+                        return
+
+        # Si no se encontró asiento en la categoría actual, pasar a la siguiente categoría
+        self.reservar_asientos_automaticamente(cantidad, zonas, categorias, zona_actual, categoria_actual + 1)
+
 
     def run(self):
         threading.Thread(target=self.receive_messages, daemon=True).start()
@@ -118,7 +122,9 @@ class StadiumClient:
                         print("Error: Solo se pueden reservar entre 1 y 3 asientos.")
                         continue
 
-                    self.reservar_asientos_automaticamente(cantidad)
+                    zonas = ["A", "B", "C", "D"]
+                    categorias = ["VIP", "Regular", "Sol", "Platea"]
+                    self.reservar_asientos_automaticamente(cantidad, zonas, categorias)
                 
                 except ValueError:
                     print("Error: La cantidad de asientos debe ser un número entero.")
