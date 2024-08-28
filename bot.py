@@ -74,18 +74,23 @@ class AutomaticStadiumClient:
 
             if action == "RESERVAR":
                 cantidad = random.randint(1, 3)
+                print(f"Reservar {cantidad} asientos...")
                 self.reservar_asientos_automaticamente(cantidad, zonas, categorias)
 
                 if self.reservas:
-                    # Comprar todos los asientos reservados sin decisión aleatoria
-                    for asiento in self.reservas:
-                        command = f'COMPRAR_ASIENTO "{asiento["categoria"]}" "{asiento["zona"]}" {asiento["fila"]} {asiento["asiento"]}'
-                        self.send_command(command)
-                    print("Compra realizada con éxito.")
+                    # Decidir aleatoriamente si comprar o no los asientos reservados
+                    buy_decision = random.choice([True, False])
+                    if buy_decision:
+                        for asiento in self.reservas:
+                            command = f'COMPRAR_ASIENTO "{asiento["categoria"]}" "{asiento["zona"]}" {asiento["fila"]} {asiento["asiento"]}'
+                            self.send_command(command)
+                        print("Compra realizada con éxito.")
+                    else:
+                        print("No se realizó la compra.")
                     
                     self.reservas.clear()
                     self.send_command("GET_STADIUM_STRUCTURE")
-                    break  # Salir del programa después de la compra
+                    break  # Salir del programa después de la compra o decisión de no comprar
 
             elif action == "CHECK":
                 zona = random.choice(zonas)
@@ -96,5 +101,5 @@ class AutomaticStadiumClient:
                 self.send_command(command_check)
 
 if __name__ == "__main__":
-    client = AutomaticStadiumClient('127.0.0.1', 8080)
+    client = AutomaticStadiumClient('127.0.0.1', 8080)  # Asegúrate de usar el puerto correcto
     client.run_automatic()
