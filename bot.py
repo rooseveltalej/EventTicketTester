@@ -87,7 +87,12 @@ class AutomaticStadiumClient:
                         print("Compra realizada con éxito.")
                     else:
                         print("No se realizó la compra.")
-                    
+                        # Liberar los asientos reservados
+                        for asiento in self.reservas:
+                            command = f'LIBERAR_ASIENTO "{asiento["categoria"]}" "{asiento["zona"]}" {asiento["fila"]} {asiento["asiento"]}'
+                            self.send_command(command)
+                        print("Asientos liberados.")
+
                     self.reservas.clear()
                     self.send_command("GET_STADIUM_STRUCTURE")
                     break  # Salir del programa después de la compra o decisión de no comprar
